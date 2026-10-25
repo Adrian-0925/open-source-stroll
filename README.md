@@ -2,6 +2,8 @@
 
 每天一小份，发现用得上的开源好工具。
 
+[在线体验](https://open-source-stroll.tealbuddy129.chatgpt.site) · [GitHub 源码](https://github.com/Adrian-0925/open-source-stroll)
+
 一个轻量的中文开源项目推荐站。用简短介绍说清项目能做什么，支持真实 GitHub 数据、自动中文简介、往日推荐和本机收藏。
 
 ![桌面端预览](docs/images/desktop.jpg)
