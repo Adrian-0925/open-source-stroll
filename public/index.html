@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f6f3fc">
+  <meta name="description" content="每天一小份开源好工具。用简单的中文，发现值得一试的项目。">
+  <title>开源散步 · 发现好项目</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./readability.css">
+  <script defer src="./content.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">跳到推荐内容</a>
+  <aside class="sidebar" aria-label="网站导航">
+    <a class="brand" href="#today" aria-label="开源散步首页"><svg class="brand-symbol" viewBox="0 0 36 36" aria-hidden="true"><path d="M18 5c5-7 13 0 8 7 9-2 12 8 4 11 6 7-3 14-9 7-2 9-13 7-12-2-8 3-13-7-5-11-7-5-1-14 6-10-1-9 10-11 11-2Z" fill="currentColor"/><circle cx="18" cy="18" r="5" fill="white"/></svg><span>开源散步<span class="brand-period">.</span></span></a>
+    <span class="brand-description">给好奇心，留一点位置</span>
+    <nav class="navigation" aria-label="主导航">
+      <a class="nav-link" href="#today" data-view="today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg><span>今日精选</span><span class="nav-live"></span></a>
+      <a class="nav-link" href="#archive" data-view="archive"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4m8-4v4M8 14h3m2 0h3m-8 3h3"/></svg><span>往日推荐</span></a>
+      <a class="nav-link" href="#saved" data-view="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"/></svg><span>我的收藏</span><span id="saved-count" class="saved-count" hidden></span></a>
+    </nav>
+    <div class="sidebar-note"><span class="tiny-flower" aria-hidden="true">✳</span><strong>每天一小份，<br>用得上的新发现。</strong><p>无需注册，随时来逛。</p><span class="note-path" aria-hidden="true"></span></div>
+    <div class="sidebar-bottom"><span><i></i> 免费 · 独立 · 开源</span><a href="./LICENSE" target="_blank" rel="noopener">MIT License ↗</a></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb"><span>发现</span><span aria-hidden="true">/</span><strong id="current-view-label">今日精选</strong></div><div class="topbar-note"><span class="status-dot"></span> <span id="data-status" role="status">正在读取 GitHub 资料</span><button id="about-button" type="button" aria-label="关于开源散步">?</button></div></header>
+    <main id="content" class="content-wrap" tabindex="-1"><div id="view-root"></div></main>
+    <footer class="site-footer content-wrap"><span>慢慢逛，发现更多可能。</span><span>独立推荐站 · 与 GitHub 无隶属关系 · 项目遵循各自许可证</span></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="about-dialog" aria-labelledby="about-title"><div class="dialog-heading"><span>关于开源散步</span><button id="close-about" aria-label="关闭关于窗口">×</button></div><h2 id="about-title">好工具，值得被发现。</h2><p>我们用简短的中文，介绍开源项目的用途和使用门槛。感兴趣了，就去原仓库继续了解。</p><p>项目资料来自 GitHub 官方接口，后台每小时同步；每天按 America/Denver 日期自动筛选 6 个未推荐过的项目。第一期保留人工编写的中文介绍，新增项目简介自动翻译为中文，仓库原文保留在使用提示内。接口限流时保留上次成功的数据，顶部可查看同步时间。自动筛选不代表本站已安装测试每个项目。</p><p>项目头像取自 GitHub 仓库作者或组织，用于标识来源；右侧的图片示意由本站绘制，并非软件截图。</p><p>收藏只保存在当前浏览器，不会上传。清除站点数据会同时清除收藏。问题和建议可在 GitHub 仓库的 Issues 中反馈。</p><a class="dialog-license" href="https://github.com/Adrian-0925/open-source-stroll" target="_blank" rel="noopener">GitHub 源码 ↗</a><a class="dialog-license" href="./LICENSE" target="_blank" rel="noopener">查看本站 MIT 许可证 ↗</a></dialog>
+  <noscript><p class="noscript">请开启 JavaScript，以浏览推荐项目和使用本机收藏功能。</p></noscript>
+</body>
+</html>

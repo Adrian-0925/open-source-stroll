@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.local/
+.wrangler/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.log
+*.tar.gz
+*.tgz
+.DS_Store
+wrangler.jsonc
+coverage/

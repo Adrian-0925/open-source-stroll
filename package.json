@@ -1,0 +1,29 @@
+{
+  "name": "open-source-stroll",
+  "version": "0.1.0",
+  "private": true,
+  "description": "每天一小份开源好工具：真实 GitHub 数据、自动中文简介、往日推荐与本机收藏。",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.cjs",
+    "build": "node scripts/build.cjs",
+    "check": "node --check public/app.js && node --check worker/index.mjs && node scripts/check-content.cjs",
+    "db:generate": "drizzle-kit generate",
+    "test": "node --test tests/*.test.mjs",
+    "refresh": "node scripts/refresh-local.mjs"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Adrian-0925/open-source-stroll.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Adrian-0925/open-source-stroll/issues"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

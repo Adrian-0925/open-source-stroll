@@ -1,0 +1,156 @@
+/* Text settings are kept after layout rules so narrow screens stay readable. */
+:root {
+  --ink: #29232f;
+  --muted: #6b6075;
+  --purple: #684395;
+  --purple-dark: #543276;
+  --text-body: #514957;
+  --text-secondary: #6b6075;
+}
+
+body { font-size: 16px; }
+.brand { font-size: 23px; }
+.brand-description {
+  display: block;
+  margin-left: 5px;
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  color: var(--text-secondary);
+}
+.nav-link { font-size: 15px; color: #5e506b; }
+.nav-link[aria-current="page"] { color: #543276; }
+.saved-count { font-size: 12px; color: #654279; }
+.sidebar-note strong { font-size: 16px; color: #53415f; }
+.sidebar-note p { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+.sidebar-bottom, .sidebar-bottom a { font-size: 12px; color: var(--text-secondary); }
+.breadcrumb { font-size: 13px; color: var(--text-secondary); }
+.breadcrumb strong { color: #51435c; }
+.topbar-note { font-size: 12px; color: var(--text-secondary); }
+.topbar-note button { font-size: 14px; color: #695478; width: 25px; height: 25px; }
+
+.daily-banner { min-height: 216px; height: auto; }
+.daily-banner h1 {
+  font-size: 32px;
+  line-height: 1.4;
+  font-weight: 650;
+  color: #3f2a51;
+}
+.banner-eyebrow { font-size: 12px; color: #655272; letter-spacing: .4px; }
+.daily-banner p { font-size: 15px; line-height: 1.7; color: #63506f; }
+.banner-number { font-size: 11px; color: #6b557b; letter-spacing: 0; }
+.banner-copy { max-width: none; }
+.feed-heading h2 { font-size: 20px; }
+.feed-count { font-size: 12px; color: #665078; }
+.feed-curation { font-size: 12px; color: var(--text-secondary); }
+
+.project-copy h3 { gap: 5px 10px; margin-bottom: 9px; }
+.project-copy h3 > a { font-size: 18px; font-weight: 650; color: #29232f; }
+.row-tagline { font-size: 15px; line-height: 1.7; color: #4e4258; }
+.description { font-size: 16px; line-height: 1.75; color: var(--text-body); margin-bottom: 12px; }
+.row-meta { font-size: 12px; line-height: 1.7; color: var(--text-secondary); gap: 7px; }
+.row-meta > .category { color: #655078; }
+.project-info summary { font-size: 12px; line-height: 1.7; color: #695279; }
+.project-info summary > span { font-size: 15px; color: #705b80; }
+.usage-note { font-size: 14px; line-height: 1.8; color: #584763; }
+.usage-note > a { color: #633b87; }
+.bookmark { color: #796786; }
+.bookmark svg { width: 18px; height: 18px; }
+.external-link { color: #796786; }
+.external-link svg { width: 18px; height: 18px; }
+
+.rail-eyebrow { font-size: 12px; color: #725b83; }
+.rail-note h2 { font-size: 24px; line-height: 1.55; color: #4d375c; }
+.rail-note > p { font-size: 14px; line-height: 1.85; color: #655371; }
+.issue-stats { font-size: 12px; color: #6f5a7c; gap: 12px; flex-wrap: wrap; }
+.issue-stats strong { font-size: 21px; color: #644976; }
+.rail-note time { font-size: 12px; color: #715c7d; line-height: 1.7; }
+.rail-section-title h2 { font-size: 15px; font-weight: 550; color: #5b436a; }
+.preview-label { font-size: 11px; color: #6e5c48; }
+.tiny-pick > h3 { font-size: 16px; line-height: 1.75; color: #55405f; }
+.tiny-pick > p { font-size: 12px; color: #6f5c7b; line-height: 1.7; }
+.rail-text-link { font-size: 13px; color: #6f488a; }
+.rail-bottom { font-size: 12px; line-height: 1.8; color: var(--text-secondary); }
+.feed-ending p { font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+.feed-ending a { font-size: 13px; color: #725189; }
+.site-footer, .site-footer > span:first-child, .site-footer > span:last-child {
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--text-secondary);
+}
+
+.page-eyebrow { font-size: 13px; color: #705781; }
+.page-intro h1 { font-size: 32px; color: #473152; }
+.page-intro h1 > span { color: #7a5297; }
+.page-intro p { font-size: 16px; line-height: 1.8; color: var(--text-body); }
+.archive-date { font-size: 13px; color: #6f557f; }
+.archive-copy h2 { font-size: 21px; color: #4d345b; }
+.archive-copy p { font-size: 15px; line-height: 1.8; color: #64516f; }
+.archive-number { color: #8e6ca7; }
+.archive-footnote, .saved-note { font-size: 13px; line-height: 1.8; color: var(--text-secondary); }
+.empty-state h2 { font-size: 23px; color: #573a69; }
+.empty-state p { font-size: 16px; line-height: 1.8; color: var(--text-body); }
+.primary-link { font-size: 15px; color: #63417e; }
+.toast { font-size: 14px; line-height: 1.7; }
+.dialog-heading { font-size: 14px; color: #715380; }
+.dialog-heading button { color: #715380; }
+dialog h2 { font-size: 25px; color: #513360; }
+dialog p { font-size: 15px; line-height: 1.85; color: #5e496b; }
+.dialog-license { font-size: 14px; color: #6d4588; }
+
+@media (max-width: 1150px) {
+  .rail-note { padding-left: 17px; padding-right: 17px; }
+  .rail-note h2 { font-size: 23px; }
+  .brand { font-size: 21px; }
+}
+
+@media (min-width: 581px) and (max-width: 760px) {
+  .brand { font-size: 18px; }
+  .brand-description { font-size: 11px; }
+  .daily-banner h1 { font-size: 28px; }
+  .banner-art { opacity: .35; }
+  .nav-link { font-size: 14px; }
+}
+
+@media (max-width: 760px) {
+  .topbar-note { font-size: 0; }
+  .topbar-note button { font-size: 14px; }
+  .row-tagline { flex-basis: 100%; }
+}
+
+@media (max-width: 580px) {
+  .brand { font-size: 23px; }
+  .brand-description { margin: 0; font-size: 11px; top: 32px; }
+  .navigation { gap: 18px; }
+  .nav-link { font-size: 14px; gap: 6px; min-height: 40px; }
+  .saved-count { font-size: 11px; }
+  .breadcrumb { font-size: 12px; }
+  .daily-banner { min-height: 194px; }
+  .daily-banner h1 { font-size: 28px; letter-spacing: -.7px; }
+  .daily-banner p { font-size: 14px; }
+  .banner-eyebrow { font-size: 11px; }
+  .banner-copy { max-width: none; }
+  .banner-art { opacity: .3; }
+  .banner-number { font-size: 10px; }
+  .feed-heading h2 { font-size: 19px; }
+  .feed-curation { font-size: 11px; }
+  .project-copy h3 > a { font-size: 18px; }
+  .row-tagline { font-size: 15px; }
+  .description { font-size: 16px; line-height: 1.75; }
+  .row-meta, .project-info summary { font-size: 12px; }
+  .usage-note { font-size: 14px; }
+  .page-intro h1 { font-size: 30px; }
+  .archive-copy h2 { font-size: 19px; }
+  .archive-copy p { font-size: 14px; }
+  .archive-date { font-size: 12px; }
+  .empty-state h2 { font-size: 22px; }
+  .primary-link { font-size: 14px; }
+  dialog h2 { font-size: 23px; }
+}
+
+@media (max-width: 360px) {
+  .brand-description { display: none; }
+  .navigation { gap: 14px; }
+  .daily-banner h1 { font-size: 26px; }
+  .feed-curation { font-size: 10px; }
+}

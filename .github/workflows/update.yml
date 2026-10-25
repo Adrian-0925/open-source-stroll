@@ -1,0 +1,30 @@
+name: Update project data
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: project-data-update
+  cancel-in-progress: false
+jobs:
+  update:
+    if: vars.SITE_ORIGIN != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Refresh GitHub data and Chinese summaries
+        env:
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+          SITE_UPDATE_TOKEN: ${{ secrets.SITE_UPDATE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module -e 'if(!process.env.SITE_UPDATE_TOKEN)throw new Error("Configure SITE_UPDATE_TOKEN in Actions secrets");process.stdout.write(JSON.stringify({origin:process.env.SITE_ORIGIN,token:process.env.SITE_UPDATE_TOKEN})+"\n")' | node public/update-cloud.mjs

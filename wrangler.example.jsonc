@@ -1,0 +1,11 @@
+{
+  "name": "open-source-stroll",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-10-25",
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "open-source-stroll",
+    "database_id": "REPLACE_WITH_YOUR_DATABASE_ID",
+    "migrations_dir": "drizzle"
+  }]
+}
