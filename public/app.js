@@ -13,6 +13,7 @@
   const bookmarkIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4Z" stroke-linejoin="round"/></svg>';
   const externalIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>';
   const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const myProjects = window.STROLL_MY_PROJECTS || [];
   let saved = new Set();
   let storageAvailable = true;
   let toastTimeout;
@@ -81,6 +82,10 @@
     root.innerHTML = `<header class="page-intro"><span class="page-eyebrow">把好奇心，留给下次</span><h1>我的收藏<span>.</span></h1><p>${saved.size?`收好了 ${saved.size} 个项目。需要的时候，再慢慢试。`:'感兴趣的项目，点一下书签就能收好。'}</p></header>${saved.size?`<section class="saved-feed" aria-label="已收藏项目">${[...saved].reverse().map(row).join('')}</section>${[...saved].some(id=>!projects[id])?'<p class="saved-note">部分收藏资料暂未加载，联网后会重新读取；收藏记录仍保留在本机。</p>':''}<p class="saved-note">${storageAvailable?'收藏只保存在当前浏览器，不会上传。清除站点数据会清除收藏。':'浏览器限制存储，收藏暂时只在本次页面打开期间保留。'}</p>`:`<section class="empty-state"><div class="empty-icon">${bookmarkIcon}</div><h2>口袋里，还是空空的。</h2><p>先去逛逛，遇到喜欢的就留下。</p><a class="primary-link" href="#today">发现今日精选 <span aria-hidden="true">↗</span></a></section>`}`;
   }
 
+  function renderMyProjects() {
+    root.innerHTML = `<div class="author-page"><header class="page-intro"><span class="page-eyebrow">从日常的小问题开始</span><h1>我做的项目<span>.</span></h1><p>自己做的工具，和我在关注的开源分支。</p></header><section class="author-project-list" aria-label="我的公开项目">${myProjects.map(p=>`<article class="author-project" data-author-project="${escapeHTML(p.id)}"><span class="author-project-mark author-mark-${escapeHTML(p.id)}" aria-hidden="true">${escapeHTML(p.mark)}</span><div class="author-project-copy"><div class="author-project-heading"><h2>${escapeHTML(p.name)}</h2><span class="author-project-kind">${escapeHTML(p.kind)}</span></div><div class="author-project-meta"><span>${escapeHTML(p.category)}</span><span>${escapeHTML(p.license)}</span></div><p class="author-project-description">${escapeHTML(p.description)}</p>${p.note?`<p class="author-project-note">${escapeHTML(p.note)}</p>`:''}${p.upstream?`<p class="author-project-note">原项目：<a href="${escapeHTML(p.upstream.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(p.upstream.name)} <span aria-hidden="true">↗</span></a></p>`:''}<div class="author-project-links">${p.links.map(link=>`<a href="${escapeHTML(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(link.label)} <span aria-hidden="true">↗</span></a>`).join('')}</div></div></article>`).join('')}</section><p class="author-page-footer"><a href="https://github.com/Adrian-0925?tab=repositories" target="_blank" rel="noopener noreferrer">到 GitHub 看看全部仓库 <span aria-hidden="true">↗</span></a></p></div>`;
+  }
+
   function updateCount() {
     const count = document.getElementById('saved-count');
     count.textContent=String(saved.size);
@@ -90,12 +95,12 @@
   function render({scroll=true}={}) {
     const hash=location.hash.slice(1);
     const edition=hash.startsWith('edition/')?editions.find(e=>e.id===hash.slice(8)):null;
-    const view=hash==='saved'?'saved':hash==='archive'||(hash.startsWith('edition/')&&!edition)?'archive':'today';
+    const view=hash==='projects'?'projects':hash==='saved'?'saved':hash==='archive'||(hash.startsWith('edition/')&&!edition)?'archive':'today';
     activeView=view;
     document.querySelectorAll('[data-view]').forEach(link=>{if(link.dataset.view===view)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
-    const title=view==='saved'?'我的收藏':view==='archive'?'往日推荐':'今日精选';
+    const title=view==='projects'?'我做的项目':view==='saved'?'我的收藏':view==='archive'?'往日推荐':'今日精选';
     document.getElementById('current-view-label').textContent=title;
-    if(view==='saved')renderSaved();else if(view==='archive')renderArchive();else renderToday(edition||editions[0]);
+    if(view==='projects')renderMyProjects();else if(view==='saved')renderSaved();else if(view==='archive')renderArchive();else renderToday(edition||editions[0]);
     document.title=`${title} · 开源散步`;
     updateCount();
     updateStatus();
@@ -126,7 +131,7 @@
   const dialog=document.getElementById('about-dialog');
   document.getElementById('about-button').addEventListener('click',()=>dialog.showModal());
   document.getElementById('close-about').addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
+  dialog.addEventListener('click',event=>{if(event.target.closest('[data-about-projects]'))dialog.close();else if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
   function updateStatus() {
     const el=document.getElementById('data-status');
     if(!el)return;

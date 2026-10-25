@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.cjs",
     "build": "node scripts/build.cjs",
-    "check": "node --check public/app.js && node --check worker/index.mjs && node scripts/check-content.cjs",
+    "check": "node --check public/app.js && node --check public/my-projects.js && node --check worker/index.mjs && node scripts/check-content.cjs",
     "db:generate": "drizzle-kit generate",
     "test": "node --test tests/*.test.mjs",
     "refresh": "node scripts/refresh-local.mjs"

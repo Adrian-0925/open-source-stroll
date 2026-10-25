@@ -2,13 +2,13 @@
 
 每天一小份，发现用得上的开源好工具。
 
-[在线体验](https://open-source-stroll.tealbuddy129.chatgpt.site) · [GitHub 源码](https://github.com/Adrian-0925/open-source-stroll)
+[在线体验](https://open-source-stroll.tealbuddy129.chatgpt.site) · [我做的项目](https://open-source-stroll.tealbuddy129.chatgpt.site/#projects) · [GitHub 源码](https://github.com/Adrian-0925/open-source-stroll)
 
 一个轻量的中文开源项目推荐站。用简短介绍说清项目能做什么，支持真实 GitHub 数据、自动中文简介、往日推荐和本机收藏。
 
 ![桌面端预览](docs/images/desktop.jpg)
 
-> 界面截图用于展示视觉风格；每日推荐和数据会随更新变化。[查看手机端](docs/images/mobile.jpg)
+> 界面截图用于展示视觉风格；每日推荐和数据会随更新变化。[查看手机端](docs/images/mobile.jpg) · [查看作品页](docs/images/projects.jpg)
 
 ## 有什么
 
@@ -16,6 +16,7 @@
 - **真实资料**：从 GitHub 官方接口获取 Star、许可证、语言和最近提交，缓存后统一展示。
 - **中文简介**：自动翻译新增项目简介，保留原文，翻译失败会重试。
 - **轻量收藏**：只保存在当前浏览器，不上传；清理站点数据后会丢失。
+- **作者作品**：主导航直接进入作品页，展示 PhonePulse、开源散步与 TokenTracker 个人 Fork，并保留原项目来源。
 - **舒服阅读**：浅色页面、清楚的文字层级，适配电脑和手机。
 
 保持简洁，让项目内容成为主角。先说用途和使用门槛，再展示技术信息，不堆砌榜单和复杂入口。

@@ -98,6 +98,28 @@ dialog h2 { font-size: 25px; color: #513360; }
 dialog p { font-size: 15px; line-height: 1.85; color: #5e496b; }
 .dialog-license { font-size: 14px; color: #6d4588; }
 
+#about-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; }
+.about-projects-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin: 6px 0 12px; font-size: 15px; color: var(--purple); }
+.about-projects-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.author-page { max-width: 880px; }
+.author-project-list { border-top: 1px solid var(--line); }
+.author-project { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 20px; padding: 28px 0 22px; border-bottom: 1px solid var(--line); }
+.author-project-mark { display: grid; place-items: center; width: 50px; height: 50px; margin-top: 2px; border-radius: 12px; background: var(--side); color: var(--purple); font-size: 23px; font-weight: 600; }
+.author-mark-phonepulse { background: #edf0fb; color: #596b9b; }
+.author-mark-tokentracker { background: #edf4ef; color: #547862; }
+.author-project-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.author-project-heading h2 { margin: 0; font-size: 22px; line-height: 1.5; font-weight: 600; color: var(--ink); }
+.author-project-kind { padding: 2px 7px; border-radius: 4px; background: var(--side); color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+.author-project-meta { display: flex; gap: 10px; margin: 7px 0 12px; font-size: 12px; line-height: 1.7; color: var(--text-secondary); }
+.author-project-meta > span + span::before { content: '·'; margin-right: 10px; }
+.author-project-description { margin: 0; font-size: 16px; line-height: 1.85; color: var(--text-body); }
+.author-project-note { margin: 9px 0 0; font-size: 13px; line-height: 1.8; color: var(--text-secondary); overflow-wrap: anywhere; }
+.author-project-note a { color: var(--purple); }
+.author-project-links { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 10px; }
+.author-project-links a, .author-page-footer a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; font-size: 14px; line-height: 1.7; color: var(--purple); }
+.author-project-links a:hover, .author-project-note a:hover, .author-page-footer a:hover { color: var(--purple-dark); text-decoration: underline; text-underline-offset: 4px; }
+.author-page-footer { margin: 22px 0 36px; }
+
 @media (max-width: 1150px) {
   .rail-note { padding-left: 17px; padding-right: 17px; }
   .rail-note h2 { font-size: 23px; }
@@ -121,9 +143,10 @@ dialog p { font-size: 15px; line-height: 1.85; color: #5e496b; }
 @media (max-width: 580px) {
   .brand { font-size: 23px; }
   .brand-description { margin: 0; font-size: 11px; top: 32px; }
-  .navigation { gap: 18px; }
-  .nav-link { font-size: 14px; gap: 6px; min-height: 40px; }
-  .saved-count { font-size: 11px; }
+  .navigation { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .nav-link { min-width: 0; flex-direction: column; justify-content: center; font-size: 13px; gap: 6px; min-height: 62px; padding: 8px 0 12px; line-height: 1.4; }
+  .nav-link > svg { width: 16px; height: 16px; }
+  .saved-count { position: absolute; top: 2px; right: calc(50% - 28px); font-size: 10px; padding: 0 4px; }
   .breadcrumb { font-size: 12px; }
   .daily-banner { min-height: 194px; }
   .daily-banner h1 { font-size: 28px; letter-spacing: -.7px; }
@@ -146,11 +169,14 @@ dialog p { font-size: 15px; line-height: 1.85; color: #5e496b; }
   .empty-state h2 { font-size: 22px; }
   .primary-link { font-size: 14px; }
   dialog h2 { font-size: 23px; }
+  .author-project { grid-template-columns: 40px minmax(0, 1fr); gap: 13px; padding: 24px 0 19px; }
+  .author-project-mark { width: 40px; height: 40px; border-radius: 10px; font-size: 20px; }
+  .author-project-heading h2 { font-size: 20px; }
 }
 
 @media (max-width: 360px) {
   .brand-description { display: none; }
-  .navigation { gap: 14px; }
+  .navigation { gap: 0; }
   .daily-banner h1 { font-size: 26px; }
   .feed-curation { font-size: 10px; }
 }
