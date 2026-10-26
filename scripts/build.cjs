@@ -10,7 +10,8 @@ for(const entry of fs.readdirSync(path.join(root,'public'),{withFileTypes:true})
 }
 const context={window:{}};
 vm.runInNewContext(assets['/content.js'].body,context);
-const source=fs.readFileSync(path.join(root,'worker/index.mjs'),'utf8').replace('/*__ASSETS__*/ {}',JSON.stringify(assets)).replace('/*__SEED__*/ { editions: [], projects: {} }',JSON.stringify(context.window.STROLL_CONTENT));
+vm.runInNewContext(assets['/project-notes.js'].body,context);
+const source=fs.readFileSync(path.join(root,'worker/index.mjs'),'utf8').replace('/*__ASSETS__*/ {}',JSON.stringify(assets)).replace('/*__SEED__*/ { editions: [], projects: {} }',JSON.stringify(context.window.STROLL_CONTENT)).replace('/*__NOTES__*/ {}',JSON.stringify(context.window.STROLL_PROJECT_NOTES));
 fs.mkdirSync(path.join(root,'dist/server'),{recursive:true});
 fs.mkdirSync(path.join(root,'dist/.openai'),{recursive:true});
 fs.writeFileSync(path.join(root,'dist/server/index.js'),source);

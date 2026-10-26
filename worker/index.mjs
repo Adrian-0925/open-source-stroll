@@ -1,13 +1,18 @@
 // Self-contained ESM Worker; scripts/build.cjs embeds the approved static UI.
 const ASSETS = /*__ASSETS__*/ {};
 const SEED = /*__SEED__*/ { editions: [], projects: {} };
+const NOTES = /*__NOTES__*/ {};
 export const TIMEZONE = 'America/Denver';
 const HOUR = 3600000;
-const TOPICS = ['productivity', 'desktop-application', 'file-management', 'image-processing', 'note-taking', 'ocr', 'utilities'];
+const TOPIC_GROUPS = [
+  ['desktop-application', 'desktop-app', 'cross-platform'],
+  ['productivity', 'note-taking', 'file-management'],
+  ['utilities', 'image-processing', 'ocr']
+];
 function searchPaths(now) {
-  const index=Math.floor(now/86400000)%TOPICS.length;
+  const index=Math.floor(now/86400000);
   const cutoff=new Date(now-180*86400000).toISOString().slice(0,10);
-  return Array.from({length:3},(_,attempt)=>`/search/repositories?q=${encodeURIComponent(`topic:${TOPICS[(index+attempt)%TOPICS.length]} stars:>200 fork:false archived:false pushed:>${cutoff}`)}&sort=stars&order=desc&per_page=50`);
+  return TOPIC_GROUPS.map(group=>`/search/repositories?q=${encodeURIComponent(`topic:${group[index%group.length]} stars:>200 fork:false archived:false pushed:>${cutoff}`)}&sort=stars&order=desc&per_page=50`);
 }
 export function dayKey(now) { return new Intl.DateTimeFormat('sv-SE', {timeZone:TIMEZONE}).format(new Date(now)); }
 const json = (value, status=200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
@@ -17,7 +22,7 @@ function putState(db,key,value) { return statement(db,'INSERT INTO state (key,va
 export async function readFeed(db) {
   const [catalog,issues,status] = await Promise.all([db.prepare('SELECT id,payload FROM projects').all(),db.prepare('SELECT payload FROM editions ORDER BY id DESC').all(),state(db,'status')]);
   const projects={...SEED.projects};
-  for(const row of catalog.results)projects[row.id]=JSON.parse(row.payload);
+  for(const row of catalog.results)projects[row.id]=applyNotes(JSON.parse(row.payload));
   const editions=issues.results.length?issues.results.map(r=>JSON.parse(r.payload)):SEED.editions;
   return {editions,projects,status:status||{source:'seed',updatedAt:null,lastError:null}};
 }
@@ -25,14 +30,36 @@ function reasonableRepo(r) { return r && Number.isInteger(r.id) && typeof r.full
 export function eligible(r,used,now) {
   return reasonableRepo(r) && !r.fork && !r.archived && !r.disabled && !r.private && r.description && r.license && r.license.spdx_id && !['NOASSERTION','NONE'].includes(r.license.spdx_id) && r.stargazers_count>=200 && new Date(r.pushed_at).getTime()>now-366*86400000 && !used.has(r.full_name.toLowerCase());
 }
-function label(r) {
-  const t=(r.topics||[]).join(' ');
-  if(/ocr|text-recognition/.test(t))return ['文字识别','从图片里提取文字'];
-  if(/image|photo|drawing/.test(t))return ['图片处理','给图片处理，多一个选择'];
-  if(/note|markdown|knowledge/.test(t))return ['笔记整理','把零散想法，有序收好'];
-  if(/file|sync|backup/.test(t))return ['文件工具','让文件管理，省一点力'];
-  if(/video|audio|media/.test(t))return ['影音工具','发现一个影音小帮手'];
-  return ['效率工具','给日常工作，多一个帮手'];
+function applyNotes(project) {
+  const notes=NOTES[project.repo?.toLowerCase()];
+  return notes?{...project,...notes,copySource:'editorial'}:project;
+}
+export function candidateProfile(r) {
+  const known=NOTES[r.full_name?.toLowerCase()];
+  if(known)return {category:known.category,access:known.access};
+  const topics=(r.topics||[]).join(' ').toLowerCase();
+  const text=`${topics} ${r.description||''}`.toLowerCase();
+  const developer=/\b(library|libraries|sdk|framework|module|package|api-client)\b/.test(text);
+  const access=developer?'developer':/\b(desktop-application|desktop-app|gui|electron|tauri)\b/.test(topics)?'app':/\b(command-line|cli|terminal)\b/.test(topics)?'command':'unknown';
+  const category=developer?'开发工具':/\b(ocr|text-recognition|pdf)\b/.test(text)?'文字识别':/\b(note-taking|notes|markdown|knowledge|whiteboard)\b/.test(text)?'笔记整理':/\b(file-management|file-sharing|file-transfer|sync|backup|files)\b/.test(text)?'文件工具':/\b(vector|drawing|design|diagram)\b/.test(text)?'设计工具':/\b(image|photo|image-processing|photos)\b/.test(text)?'图片处理':/\b(video|audio|media|music)\b/.test(text)?'影音工具':'效率工具';
+  return {category,access};
+}
+export function selectRecommendations(candidates,used,now) {
+  const unique=new Map(candidates.filter(r=>eligible(r,used,now)).map(r=>[r.full_name.toLowerCase(),r]));
+  const remaining=[...unique.values()].map(repo=>({repo,...candidateProfile(repo)}));
+  const selected=[],counts=new Map();let developers=0;
+  while(selected.length<6) {
+    const available=remaining.filter(p=>(counts.get(p.category)||0)<2 && (p.access!=='developer'||developers<1));
+    available.sort((a,b)=>{
+      const score=p=>(['app','web'].includes(p.access)?12:p.access==='command'?4:p.access==='developer'?-12:0)+Math.log10(p.repo.stargazers_count+1)-(counts.get(p.category)||0)*20;
+      return score(b)-score(a)||a.repo.full_name.localeCompare(b.repo.full_name);
+    });
+    const choice=available[0];if(!choice)break;
+    selected.push(choice.repo);counts.set(choice.category,(counts.get(choice.category)||0)+1);
+    if(choice.access==='developer')developers++;
+    remaining.splice(remaining.indexOf(choice),1);
+  }
+  return selected;
 }
 export function isChinese(text) {
   const value=String(text||'');
@@ -40,22 +67,29 @@ export function isChinese(text) {
   const han=(value.match(/[\u3400-\u9fff]/gu)||[]).length;
   return han>=2 && han/Math.max(1,value.replace(/\s/g,'').length)>=0.18;
 }
-const isEditorial=p=>Object.values(SEED.projects).some(s=>s.repo.toLowerCase()===p.repo?.toLowerCase());
+const isEditorial=p=>!!NOTES[p.repo?.toLowerCase()]||Object.values(SEED.projects).some(s=>s.repo.toLowerCase()===p.repo?.toLowerCase());
+function chineseExcerpt(source) {
+  const start=source.search(/[\u3400-\u9fff]/u);
+  const tail=source.slice(start);
+  // A bilingual repository description may repeat an English introduction in Chinese.
+  if(start>0 && (source.slice(0,start).match(/[A-Za-z]{2,}/g)||[]).length>=6 && (tail.match(/[\u3400-\u9fff]/gu)||[]).length>=12)return tail;
+  return source;
+}
 export function projectFrom(r,old={},now=Date.now()) {
   if(!reasonableRepo(r))throw new Error('GitHub 返回了不完整的项目资料');
-  const [category,title]=label(r);
+  const {category,access}=candidateProfile(r);
   const source=String(r.description||'').trim();
   const editorial=isEditorial({repo:r.full_name});
   const originalChinese=isChinese(source);
-  const description=editorial && old.description?old.description:originalChinese?source:(isChinese(old.description)?old.description:'中文简介正在自动翻译，可先到原仓库了解项目。');
-  return {...old,name:old.name||r.name,repo:r.full_name,category:old.category||category,title:old.title||title,
+  const description=editorial && old.description?old.description:originalChinese?chineseExcerpt(source):(isChinese(old.description)?old.description:'中文简介正在自动翻译，可先到原仓库了解项目。');
+  return applyNotes({...old,name:old.name||r.name,repo:r.full_name,category:editorial?old.category||category:category,title:editorial?old.title||'':'',access,
     description,copySource:editorial?'editorial':'github',
     ...(!editorial && originalChinese?{translation:{status:'original',source:source.slice(0,600),provider:null}}:{}),
-    tags:old.tags||[r.language||'开源项目',r.license?.spdx_id||'查看许可'],
-    note:editorial && old.note?old.note:'简介依据仓库描述自动翻译（MyMemory），未逐个安装测试。请先查看 README、安装要求与许可证。',
+    tags:editorial?old.tags||[]:[access==='developer'?'需要编程':access==='app'?'桌面应用':access==='command'?'需要命令行':'使用方式见仓库'],
+    note:editorial && old.note?old.note:originalChinese?'简介取自仓库的中文说明，未逐个安装测试。请先查看 README、安装要求与许可证。':'简介依据仓库描述自动翻译（MyMemory），未逐个安装测试。请先查看 README、安装要求与许可证。',
     art:old.art||'files',color:old.color||'lilac',avatarId:r.owner.id,
     stars:r.stargazers_count,forks:r.forks_count||0,language:r.language||null,license:r.license?.spdx_id||null,
-    pushedAt:r.pushed_at,archived:!!r.archived,sourceDescription:source,checkedAt:new Date(now).toISOString()};
+    pushedAt:r.pushed_at,archived:!!r.archived,sourceDescription:source,checkedAt:new Date(now).toISOString()});
 }
 export async function translationQueue(env,now=Date.now()) {
   const feed=await readFeed(env.DB);
@@ -123,16 +157,17 @@ export async function refresh(env,fetcher=fetch,now=Date.now(),transport='worker
     if(!edition) {
       const used=new Set(Object.values(projects).map(p=>p.repo.toLowerCase()));
       const pool=new Map();
-      for(let attempt=0;attempt<3 && pool.size<6;attempt++) {
+      for(let attempt=0;attempt<3;attempt++) {
         const result=await github(searchPaths(now)[attempt],env,fetcher,now);
         if(!Array.isArray(result.items)||result.incomplete_results)throw new Error('GitHub 搜索结果不完整，本次保留上期推荐');
         for(const r of result.items)if(eligible(r,used,now))pool.set(r.full_name.toLowerCase(),r);
       }
-      const selected=[...pool.values()].sort((a,b)=>Math.log10(b.stargazers_count+1)-Math.log10(a.stargazers_count+1)).slice(0,6);
-      if(selected.length!==6)throw new Error('暂未找到 6 个符合条件且未推荐过的项目，保留上期推荐');
+      const selected=selectRecommendations([...pool.values()],used,now);
+      if(selected.length!==6)throw new Error('暂未找到 6 个用途足够多样的新项目，保留上期推荐');
       const selectedIds=[];
       for(const r of selected){const id=`gh-${r.id}`;projects[id]=projectFrom(r,{},now);changed.add(id);selectedIds.push(id);}
-      edition={id:day,number:String(editions.length+1).padStart(2,'0'),title:'给日常，多几个开源选择。',subtitle:'从 GitHub 的公开项目中，自动筛选出的六个新发现。',projects:selectedIds,selection:'automatic'};
+      const categories=[...new Set(selected.map(r=>candidateProfile(r).category))];
+      edition={id:day,number:String(editions.length+1).padStart(2,'0'),title:`从${categories[0]}到${categories[1]}，发现几个好工具。`,subtitle:categories.join(' · ')+'，六个可以继续了解的新发现。',projects:selectedIds,selection:'automatic',selectionVersion:2};
       editions.unshift(edition);
       createdEdition=true;
     }

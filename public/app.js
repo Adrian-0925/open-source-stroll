@@ -1,12 +1,15 @@
 (() => {
   'use strict';
   let { editions, projects } = window.STROLL_CONTENT;
+  const projectNotes = window.STROLL_PROJECT_NOTES || {};
+  const withNotes = values => Object.fromEntries(Object.entries(values).map(([id,p])=>[id,projectNotes[p.repo.toLowerCase()]?{...p,...projectNotes[p.repo.toLowerCase()],copySource:'editorial'}:p]));
+  projects = withNotes(projects);
   let dataStatus = {source:'seed',updatedAt:null};
   const feedKey = 'open-source-stroll:feed:v1';
   function validFeed(data) {
     return data && Array.isArray(data.editions) && data.editions.length && data.projects && data.editions.every(e=>/^\d{4}-\d{2}-\d{2}$/.test(e.id) && Array.isArray(e.projects) && e.projects.length===6 && e.projects.every(id=>data.projects[id])) && Object.entries(data.projects).every(([id,p])=>/^[\w-]+$/.test(id) && /^[\w.-]+\/[\w.-]+$/.test(p.repo) && ['name','title','description','category','note'].every(k=>typeof p[k]==='string') && Array.isArray(p.tags));
   }
-  function acceptFeed(data) { if(!validFeed(data))throw new Error('Invalid feed'); projects={...window.STROLL_CONTENT.projects,...data.projects};editions=data.editions;dataStatus=data.status||{}; }
+  function acceptFeed(data) { if(!validFeed(data))throw new Error('Invalid feed'); projects=withNotes({...window.STROLL_CONTENT.projects,...data.projects});editions=data.editions;dataStatus=data.status||{}; }
   try {const cached=JSON.parse(localStorage.getItem(feedKey)||'null');if(cached)acceptFeed(cached);}catch{}
   const storageKey = 'open-source-stroll:saved:v1';
   const root = document.getElementById('view-root');
@@ -52,26 +55,32 @@
     const p = projects[id];
     if(!p)return '';
     const url = `https://github.com/${p.repo}`;
-    return `<article class="project-row" data-project="${id}"><a class="avatar-link" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="前往 ${escapeHTML(p.name)} 的 GitHub 项目主页，新窗口打开">${avatar(id)}</a><div class="project-copy"><h3><a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHTML(p.name)}</a><span class="row-tagline">${escapeHTML(p.title)}</span></h3><p class="description">${escapeHTML(p.description)}</p><div class="row-meta"><span class="category">${escapeHTML(p.category)}</span>${Number.isFinite(p.stars)?`<span title="GitHub Star 数，${escapeHTML(p.checkedAt)} 获取">★ ${new Intl.NumberFormat('zh-CN',{notation:'compact',maximumFractionDigits:1}).format(p.stars)}</span>`:''}${p.tags.map(tag=>`<span>${escapeHTML(tag)}</span>`).join('')}<details class="project-info"><summary>使用提示 <span aria-hidden="true">⌄</span></summary><div class="usage-note">${escapeHTML(p.note)}${p.copySource==='github' && p.sourceDescription?`<br>仓库原文：${escapeHTML(p.sourceDescription)}`:''}${p.checkedAt?`<br>GitHub：${escapeHTML((p.license && p.license!=='NOASSERTION'?p.license:'请查阅原仓库许可'))} · 最近提交 ${escapeHTML((p.pushedAt||'').slice(0,10))} · ${p.archived?'已归档':'未归档'}。资料核对于 ${escapeHTML(new Date(p.checkedAt).toLocaleString('zh-CN'))}。`:''} <a href="${url}#license" target="_blank" rel="noopener noreferrer" aria-label="查看 ${escapeHTML(p.name)} 的许可证，新窗口打开">许可证 ↗</a></div></details></div></div><div class="row-actions">${saveButton(id)}<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="打开 ${escapeHTML(p.name)} 项目，新窗口打开">${externalIcon}</a></div></article>`;
+    return `<article class="project-row" data-project="${id}"><a class="avatar-link" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="前往 ${escapeHTML(p.name)} 的 GitHub 项目主页，新窗口打开">${avatar(id)}</a><div class="project-copy"><h3><a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHTML(p.name)}</a>${p.title&&p.copySource!=='github'?`<span class="row-tagline">${escapeHTML(p.title)}</span>`:''}</h3><p class="description">${escapeHTML(p.description)}</p><div class="row-meta"><span class="category">${escapeHTML(p.category)}</span>${p.tags.map(tag=>`<span>${escapeHTML(tag)}</span>`).join('')}${Number.isFinite(p.stars)?`<span title="GitHub Star 数，${escapeHTML(p.checkedAt)} 获取">★ ${new Intl.NumberFormat('zh-CN',{notation:'compact',maximumFractionDigits:1}).format(p.stars)}</span>`:''}<details class="project-info"><summary>使用提示 <span aria-hidden="true">⌄</span></summary><div class="usage-note">${escapeHTML(p.note)}${p.sourceDescription?`<br>仓库原文：${escapeHTML(p.sourceDescription)}`:''}${p.editorialSources?.length?`<br>用途参考：${p.editorialSources.map((source,index)=>`<a href="${escapeHTML(source)}" target="_blank" rel="noopener noreferrer">官方资料${index+1} ↗</a>`).join(' · ')}`:''}${p.checkedAt?`<br>GitHub：${escapeHTML((p.license && p.license!=='NOASSERTION'?p.license:'请查阅原仓库许可'))} · 最近提交 ${escapeHTML((p.pushedAt||'').slice(0,10))} · ${p.archived?'已归档':'未归档'}。资料核对于 ${escapeHTML(new Date(p.checkedAt).toLocaleString('zh-CN'))}。`:''} <a href="${url}#license" target="_blank" rel="noopener noreferrer" aria-label="查看 ${escapeHTML(p.name)} 的许可证，新窗口打开">许可证 ↗</a></div></details></div></div><div class="row-actions">${saveButton(id)}<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="打开 ${escapeHTML(p.name)} 项目，新窗口打开">${externalIcon}</a></div></article>`;
   }
 
   function dateLabel(date) {
     return new Intl.DateTimeFormat('zh-CN',{month:'long',day:'numeric',weekday:'long',timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`));
   }
 
-  function hero(edition) {
-    return `<section class="daily-banner" aria-labelledby="welcome-heading"><div class="banner-copy"><span class="banner-eyebrow"><span></span> 每日开源发现</span><h1 id="welcome-heading">好工具，<br>总会在这里遇见。</h1><p>每天一小份，挑你用得上的。</p></div><div class="banner-art" aria-hidden="true"><div class="orbit-circle orbit-one"></div><div class="orbit-circle orbit-two"></div><div class="orbit-center"><svg viewBox="0 0 36 36"><path d="M18 5c5-7 13 0 8 7 9-2 12 8 4 11 6 7-3 14-9 7-2 9-13 7-12-2-8 3-13-7-5-11-7-5-1-14 6-10-1-9 10-11 11-2Z" fill="currentColor"/><circle cx="18" cy="18" r="5" fill="#eee7ff"/></svg></div><span class="orbit-icon orbit-a">${avatar('localsend')}</span><span class="orbit-icon orbit-b">${avatar('upscayl')}</span><span class="orbit-icon orbit-c">${avatar('sharex')}</span><span class="orbit-code">&lt; / &gt;</span><span class="art-spark spark-a">✳</span><span class="art-spark spark-b">＋</span></div><span class="banner-number">小小发现 · 第 ${escapeHTML(edition.number)} 期</span></section>`;
+  function hero(edition, historical = false) {
+    return `<section class="daily-banner" aria-labelledby="welcome-heading"><div class="banner-copy"><span class="banner-eyebrow"><span></span> ${historical?'往日回看':'每日开源发现'}</span><h1 id="welcome-heading">${historical?`${dateLabel(edition.id).replace(/星期.+$/,'')}，<br>也有值得留住的发现。`:'好工具，<br>总会在这里遇见。'}</h1><p>${historical?'这一期，随时可以回来慢慢看。':'每天一小份，挑你用得上的。'}</p></div><div class="banner-art" aria-hidden="true"><div class="orbit-circle orbit-one"></div><div class="orbit-circle orbit-two"></div><div class="orbit-center"><svg viewBox="0 0 36 36"><path d="M18 5c5-7 13 0 8 7 9-2 12 8 4 11 6 7-3 14-9 7-2 9-13 7-12-2-8 3-13-7-5-11-7-5-1-14 6-10-1-9 10-11 11-2Z" fill="currentColor"/><circle cx="18" cy="18" r="5" fill="#eee7ff"/></svg></div><span class="orbit-icon orbit-a">${avatar('localsend')}</span><span class="orbit-icon orbit-b">${avatar('upscayl')}</span><span class="orbit-icon orbit-c">${avatar('sharex')}</span><span class="orbit-code">&lt; / &gt;</span><span class="art-spark spark-a">✳</span><span class="art-spark spark-b">＋</span></div><span class="banner-number">${escapeHTML(edition.id.replaceAll('-','.'))} · 第 ${escapeHTML(edition.number)} 期</span></section>`;
   }
 
   function rail(edition) {
-    const url = 'https://github.com/visioncortex/vtracer';
-    return `<aside class="discovery-rail" aria-label="本期导读"><section class="rail-note"><span class="rail-eyebrow">这期聊什么</span><h2>把小麻烦，<br>交给好工具。</h2><p>${edition.selection==='automatic'?'从 GitHub 公开项目中自动筛选，排除已推荐的项目。项目简介依据仓库描述自动翻译。':'传个文件、认几个字、整理一下照片。从你今天遇到的小事开始。'}</p><div class="issue-stats"><span><strong>${edition.projects.length}</strong> 个项目</span><span><strong>3</strong> 分钟左右</span></div><time datetime="${edition.id}">${dateLabel(edition.id)}</time></section><section class="tiny-pick"><div class="rail-section-title"><span class="little-star">✧</span><h2>顺手发现</h2></div><a class="vector-preview" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="查看 VTracer 位图转矢量项目，新窗口打开"><div class="flower-before"><span></span></div><span class="convert-arrow" aria-hidden="true">→</span><svg class="flower-after" viewBox="0 0 80 80" aria-hidden="true"><path d="M39 34C7 33 15 1 33 17 31-11 66-3 53 22 81 9 88 45 59 45 89 61 60 82 47 55 40 87 9 68 28 49 0 54 1 18 27 28Z" fill="#efb853"/><circle cx="43" cy="37" r="11" fill="#7660a0"/></svg><span class="preview-label">用途示意</span></a><h3><a href="${url}" target="_blank" rel="noopener noreferrer">小图，也能变成矢量图。 ↗</a></h3><p>VTracer · 位图转 SVG</p><a class="rail-text-link" href="${url}" target="_blank" rel="noopener noreferrer">去看看 <span aria-hidden="true">↗</span></a></section><div class="rail-bottom"><span>✳</span> 保持好奇，慢慢发现。</div></aside>`;
+    const entries=edition.projects.map(id=>projects[id]);
+    const categories=[...new Set(entries.map(p=>p.category))];
+    const practical=entries.filter(p=>p.access==='web'||p.access==='app'||(!p.access&&!p.tags.includes('开发者工具')));
+    const choices=practical.length?practical:entries;
+    const pick=choices[(Number(edition.number)||1)%choices.length];
+    const url=`https://github.com/${pick.repo}`;
+    const summary=edition.selection==='automatic'?`这期有${categories.slice(0,3).join('、')}${categories.length>3?'等用途':''}。看看你眼下需要什么，再挑一个继续了解。`:'传个文件、认几个字、整理一下照片。从你今天遇到的小事开始。';
+    return `<aside class="discovery-rail" aria-label="本期导读"><section class="rail-note"><span class="rail-eyebrow">这期聊什么</span><h2>从一件小事，<br>遇见好工具。</h2><p>${escapeHTML(summary)}</p><div class="issue-stats"><span><strong>${edition.projects.length}</strong> 个项目</span><span><strong>3</strong> 分钟左右</span></div><time datetime="${edition.id}">${dateLabel(edition.id)}</time></section><section class="tiny-pick"><div class="rail-section-title"><span class="little-star">✧</span><h2>顺手发现</h2></div><a class="pick-preview" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="查看 ${escapeHTML(pick.name)}，新窗口打开"><span class="pick-preview-orbit" aria-hidden="true"></span><svg viewBox="0 0 80 80" aria-hidden="true"><path d="M39 34C7 33 15 1 33 17 31-11 66-3 53 22 81 9 88 45 59 45 89 61 60 82 47 55 40 87 9 68 28 49 0 54 1 18 27 28Z" fill="#efb853"/><circle cx="43" cy="37" r="11" fill="#7660a0"/></svg><span class="pick-preview-category">${escapeHTML(pick.category)}</span><span class="preview-label">本站插画</span></a><h3><a href="${url}" target="_blank" rel="noopener noreferrer">${escapeHTML(pick.title&&pick.copySource!=='github'?pick.title:pick.name)} ↗</a></h3><p>${escapeHTML(pick.name)} · ${escapeHTML(pick.tags[0]||pick.category)}</p><a class="rail-text-link" href="${url}" target="_blank" rel="noopener noreferrer">去看看 <span aria-hidden="true">↗</span></a></section><div class="rail-bottom"><span>✳</span> 保持好奇，慢慢发现。</div></aside>`;
   }
 
-  function renderToday(edition = editions[0]) {
+  function renderToday(edition = editions[0], historical = false) {
     const today = new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Denver'}).format(new Date());
-    const title = edition.id === today ? '今日精选' : '最新一期';
-    root.innerHTML = `<div class="discovery-layout"><div class="main-column">${hero(edition)}<section class="project-feed" aria-labelledby="feed-heading"><header class="feed-heading"><div><h2 id="feed-heading">${title}</h2><span class="feed-count">${edition.projects.length}</span></div><span class="feed-curation"><i></i> ${dataStatus.updatedAt?new Intl.DateTimeFormat('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(dataStatus.updatedAt))+' 更新':'初始推荐 · 待同步'}</span></header><div class="project-list">${edition.projects.map(row).join('')}</div><div class="feed-ending"><span aria-hidden="true">✧</span><p>今天的发现，就先到这里。</p><a href="#archive">翻翻往日推荐 <span aria-hidden="true">→</span></a></div></section></div>${rail(edition)}</div>`;
+    const title = historical ? `${dateLabel(edition.id).replace(/星期.+$/,'')} · 第 ${edition.number} 期` : edition.id === today ? '今日精选' : '最新一期';
+    root.innerHTML = `<div class="discovery-layout"><div class="main-column">${hero(edition,historical)}<section class="project-feed" aria-labelledby="feed-heading"><header class="feed-heading"><div><h2 id="feed-heading">${escapeHTML(title)}</h2><span class="feed-count">${edition.projects.length}</span></div><span class="feed-curation"><i></i> ${historical?'往日期刊':dataStatus.updatedAt?new Intl.DateTimeFormat('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(dataStatus.updatedAt))+' 更新':'初始推荐 · 待同步'}</span></header><div class="project-list">${edition.projects.map(row).join('')}</div><div class="feed-ending"><span aria-hidden="true">✧</span><p>${historical?'这一期的发现，就先到这里。':'今天的发现，就先到这里。'}</p><a href="#archive">${historical?'回到往日推荐':'翻翻往日推荐'} <span aria-hidden="true">→</span></a></div></section></div>${rail(edition)}</div>`;
   }
 
   function renderArchive() {
@@ -95,12 +104,12 @@
   function render({scroll=true}={}) {
     const hash=location.hash.slice(1);
     const edition=hash.startsWith('edition/')?editions.find(e=>e.id===hash.slice(8)):null;
-    const view=hash==='projects'?'projects':hash==='saved'?'saved':hash==='archive'||(hash.startsWith('edition/')&&!edition)?'archive':'today';
+    const view=hash==='projects'?'projects':hash==='saved'?'saved':hash==='archive'||hash.startsWith('edition/')?'archive':'today';
     activeView=view;
     document.querySelectorAll('[data-view]').forEach(link=>{if(link.dataset.view===view)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
-    const title=view==='projects'?'我做的项目':view==='saved'?'我的收藏':view==='archive'?'往日推荐':'今日精选';
+    const title=edition?`${edition.id} · 第 ${edition.number} 期`:view==='projects'?'我做的项目':view==='saved'?'我的收藏':view==='archive'?'往日推荐':'今日精选';
     document.getElementById('current-view-label').textContent=title;
-    if(view==='projects')renderMyProjects();else if(view==='saved')renderSaved();else if(view==='archive')renderArchive();else renderToday(edition||editions[0]);
+    if(edition)renderToday(edition,true);else if(view==='projects')renderMyProjects();else if(view==='saved')renderSaved();else if(view==='archive')renderArchive();else renderToday();
     document.title=`${title} · 开源散步`;
     updateCount();
     updateStatus();
@@ -108,6 +117,7 @@
   }
 
   // The fallback remains legible if GitHub avatars are blocked or unavailable.
+  root.addEventListener('load',event=>{if(event.target.matches('.project-avatar img'))event.target.dataset.loaded='true';},true);
   root.addEventListener('error',event=>{if(event.target.matches('.project-avatar img'))event.target.hidden=true;},true);
   root.addEventListener('click',event=>{
     const button=event.target.closest('[data-save]');

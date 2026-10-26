@@ -58,6 +58,16 @@ body { font-size: 16px; }
 .bookmark svg { width: 18px; height: 18px; }
 .external-link { color: #796786; }
 .external-link svg { width: 18px; height: 18px; }
+.project-row { grid-template-columns: 50px minmax(0, 1fr) 44px; }
+.row-actions { align-items: center; gap: 4px; }
+.bookmark, .external-link { display: grid; place-items: center; width: 44px; height: 44px; padding: 12px; }
+.project-avatar img { opacity: 0; }
+.project-avatar img[data-loaded] { opacity: 1; }
+.pick-preview { position: relative; display: flex; align-items: center; justify-content: center; gap: 16px; min-height: 122px; border: 1px solid #ece4d8; border-radius: 12px; overflow: hidden; background: #f5f0e9; }
+.pick-preview > svg { position: relative; width: 62px; height: 62px; flex: 0 0 auto; }
+.pick-preview-category { position: relative; font-size: 14px; color: #69516f; }
+.pick-preview-orbit { position: absolute; width: 150px; height: 150px; border: 1px dashed #e5d8c7; border-radius: 50%; left: -24px; top: -42px; }
+.pick-preview .preview-label { position: absolute; bottom: 9px; right: 12px; font-size: 10px; }
 
 .rail-eyebrow { font-size: 12px; color: #725b83; }
 .rail-note h2 { font-size: 24px; line-height: 1.55; color: #4d375c; }
@@ -144,17 +154,22 @@ dialog p { font-size: 15px; line-height: 1.85; color: #5e496b; }
   .brand { font-size: 23px; }
   .brand-description { margin: 0; font-size: 11px; top: 32px; }
   .navigation { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
-  .nav-link { min-width: 0; flex-direction: column; justify-content: center; font-size: 13px; gap: 6px; min-height: 62px; padding: 8px 0 12px; line-height: 1.4; }
+  .nav-link { min-width: 0; flex-direction: column; justify-content: center; font-size: 13px; gap: 4px; min-height: 52px; padding: 6px 0 8px; line-height: 1.4; }
   .nav-link > svg { width: 16px; height: 16px; }
   .saved-count { position: absolute; top: 2px; right: calc(50% - 28px); font-size: 10px; padding: 0 4px; }
   .breadcrumb { font-size: 12px; }
-  .daily-banner { min-height: 194px; }
-  .daily-banner h1 { font-size: 28px; letter-spacing: -.7px; }
+  .topbar { height: 36px; }
+  .topbar-note button { width: 32px; height: 32px; margin-left: 0; }
+  .daily-banner { min-height: 132px; padding: 14px 20px; margin-bottom: 18px; }
+  .daily-banner h1 { font-size: 25px; line-height: 1.35; letter-spacing: -.7px; margin-bottom: 6px; }
   .daily-banner p { font-size: 14px; }
-  .banner-eyebrow { font-size: 11px; }
+  .banner-eyebrow { display: none; }
   .banner-copy { max-width: none; }
   .banner-art { opacity: .3; }
   .banner-number { font-size: 10px; }
+  .banner-art { width: 150px; top: -22px; }
+  .feed-heading { flex-wrap: wrap; gap: 8px; }
+  .project-row { grid-template-columns: 42px minmax(0, 1fr) 44px; }
   .feed-heading h2 { font-size: 19px; }
   .feed-curation { font-size: 11px; }
   .project-copy h3 > a { font-size: 18px; }
@@ -177,6 +192,7 @@ dialog p { font-size: 15px; line-height: 1.85; color: #5e496b; }
 @media (max-width: 360px) {
   .brand-description { display: none; }
   .navigation { gap: 0; }
-  .daily-banner h1 { font-size: 26px; }
+  .daily-banner h1 { font-size: 23px; }
+  .project-row { grid-template-columns: 36px minmax(0, 1fr) 44px; }
   .feed-curation { font-size: 10px; }
 }

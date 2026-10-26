@@ -5,10 +5,10 @@ import {readFileSync} from 'node:fs';
 const require=createRequire(import.meta.url);
 const {openDB}=require('../scripts/local-db.cjs');
 const source=readFileSync(new URL('../dist/server/index.js',import.meta.url),'utf8');
-const {refresh,readFeed,eligible,dayKey,pullPlan,ingest,default:worker}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const {refresh,readFeed,eligible,dayKey,pullPlan,ingest,selectRecommendations,candidateProfile,projectFrom,translationQueue,default:worker}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const today=Date.parse('2026-10-24T12:00:00Z'),tomorrow=today+86400000;
 function repo(name,id=1){return {id,full_name:name,name:name.split('/')[1],owner:{id:123},stargazers_count:1000,forks_count:12,description:'Original repository description',topics:['productivity'],language:'TypeScript',license:{spdx_id:'MIT'},pushed_at:'2026-10-20T00:00:00Z',fork:false,archived:false,private:false};}
-function mock(options={}){let calls=0;const fn=async(url,init)=>{calls++;if(init.redirect==='error')throw new TypeError('Workers does not support redirect:error');if(options.fail)return new Response('{}',{status:429,headers:{'x-ratelimit-reset':String(Math.floor((tomorrow+3600000)/1000))}});if(url.includes('/search/'))return Response.json({incomplete_results:false,items:[repo('localsend/localsend'),...Array.from({length:options.short?3:10},(_,i)=>repo('new/project'+i,i+50))]});return Response.json(repo(decodeURIComponent(new URL(url).pathname.replace('/repos/',''))));};fn.count=()=>calls;return fn;}
+function mock(options={}){let calls=0;const fn=async(url,init)=>{calls++;if(init.redirect==='error')throw new TypeError('Workers does not support redirect:error');if(options.fail)return new Response('{}',{status:429,headers:{'x-ratelimit-reset':String(Math.floor((tomorrow+3600000)/1000))}});if(url.includes('/search/'))return Response.json({incomplete_results:false,items:[repo('localsend/localsend'),...Array.from({length:options.short?3:10},(_,i)=>({...repo('new/project'+i,i+50),topics:[['note-taking','file-management','image-processing','audio','design'][i%5],'desktop-application']}))]});return Response.json(repo(decodeURIComponent(new URL(url).pathname.replace('/repos/',''))));};fn.count=()=>calls;return fn;}
 test('live metadata merges with original copy; cache avoids extra calls',async()=>{
   const DB=openDB(),api=mock();
   assert.equal((await refresh({DB},api,today)).outcome,'updated');
@@ -50,6 +50,33 @@ test('selection excludes archived, forked, unlicensed and already featured repos
   for(const bad of [{archived:true},{fork:true},{license:null},{license:{spdx_id:'NOASSERTION'}},{stargazers_count:1},{pushed_at:'2020-01-01'}])assert(!eligible({...r,...bad},new Set(),today));
   assert(!eligible(r,new Set(['a/b']),today));
   assert.equal(dayKey(Date.parse('2026-10-25T05:00:00Z')),'2026-10-24');
+});
+
+test('daily selection reads every search group, caps categories, and limits developer libraries',async()=>{
+  const candidates=Array.from({length:12},(_,i)=>({...repo('mixed/project'+i,200+i),topics:[i<4?'image-processing':i<7?'note-taking':i<10?'file-management':'audio','desktop-application'],stargazers_count:1000+i}));
+  candidates.unshift({...repo('libs/vision',310),description:'An image processing library',topics:['image-processing'],stargazers_count:1000000});
+  candidates.unshift({...repo('libs/files',311),description:'A file management SDK',topics:['file-management'],stargazers_count:900000});
+  const selected=selectRecommendations(candidates,new Set(),tomorrow);
+  assert.equal(selected.length,6);
+  const categories=selected.map(r=>candidateProfile(r).category);
+  assert(new Set(categories).size>=3);
+  for(const category of categories)assert(categories.filter(c=>c===category).length<=2);
+  assert(selected.filter(r=>candidateProfile(r).access==='developer').length<=1);
+  assert(selected.every(r=>candidateProfile(r).access==='app'));
+  assert(selectRecommendations(candidates.filter(r=>candidateProfile(r).category==='图片处理'),new Set(),tomorrow).length<=2);
+  const DB=openDB();await refresh({DB},mock(),today);
+  const api=mock();assert.equal((await refresh({DB},api,tomorrow)).outcome,'updated');
+  assert.equal(api.count(),9,'Six existing projects plus all three search groups must be read');DB.close();
+});
+
+test('reviewed usage notes replace legacy copy without discarding raw data or saved project IDs',async()=>{
+  const DB=openDB();
+  const p=projectFrom({...repo('danielgatis/rembg',286500101),description:'Rembg is a tool to remove images background',topics:['image-processing']},{title:'给图片处理，多一个选择',tags:['Python','MIT']},tomorrow);
+  assert.match(p.title,/去掉照片背景/);assert.deepEqual(p.tags,['需要命令行','批量去背景']);
+  assert.equal(p.sourceDescription,'Rembg is a tool to remove images background');assert.equal(p.copySource,'editorial');
+  await DB.prepare('INSERT INTO projects (id,payload) VALUES (?,?)').bind('gh-286500101',JSON.stringify({...p,title:'old copy',copySource:'github'})).run();
+  const feed=await readFeed(DB);assert.match(feed.projects['gh-286500101'].title,/去掉照片背景/);
+  assert.equal(feed.projects['gh-286500101'].stars,1000);assert.equal((await translationQueue({DB},tomorrow)).items.length,0);DB.close();
 });
 test('updater rejects cross-origin or non-JSON writes; static UI and feed are served',async()=>{
   const DB=openDB();

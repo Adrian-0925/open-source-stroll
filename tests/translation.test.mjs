@@ -53,6 +53,15 @@ test('editorial Chinese remains untouched and original Chinese bypasses translat
   assert.equal((await translationQueue({DB},now)).items.length,0);DB.close();
 });
 
+test('bilingual source displays its Chinese introduction and keeps the full original',()=>{
+  const original='An open-source, privacy-first knowledge workspace for people and teams 开源、隐私优先的知识工作空间，用于整理个人资料与团队笔记。';
+  const p=projectFrom({...raw,description:original},{},now);
+  assert.equal(p.sourceDescription,original);
+  assert.equal(p.description,'开源、隐私优先的知识工作空间，用于整理个人资料与团队笔记。');
+  assert.equal(p.translation.status,'original');
+  assert.match(p.note,/仓库的中文说明/);
+});
+
 test('public deployments fail closed and authorized owners can read the pending queue',async()=>{
   const DB=openDB(),url='https://example.com/api/admin/translations';
   assert.equal((await worker.fetch(new Request(url),{DB})).status,503);
